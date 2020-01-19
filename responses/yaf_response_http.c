@@ -136,8 +136,11 @@ int yaf_response_alter_header(yaf_response_t *response, zend_string *name, char 
 int yaf_response_set_redirect(yaf_response_t *response, char *url, int len) {
 	sapi_header_line ctr = {0};
 
-	ctr.line_len    = spprintf(&(ctr.line), 0, "%s %s", "Location:", url);
-	ctr.response_code   = 0;
+	if (strcmp("cli", sapi_module.name) == 0 || strcmp("phpdbg", sapi_module.name) == 0) {
+		return 0;
+	}
+	ctr.line_len = spprintf(&(ctr.line), 0, "%s %s", "Location:", url);
+	ctr.response_code = 0;
 	if (sapi_header_op(SAPI_HEADER_REPLACE, &ctr) == SUCCESS) {
 		efree(ctr.line);
 		return 1;
@@ -152,7 +155,7 @@ int yaf_response_set_redirect(yaf_response_t *response, char *url, int len) {
 int yaf_response_http_send(yaf_response_t *response) {
 	zval *zresponse_code, *zheader, *zbody;
 	zval *val, *entry;
-	ulong num_key;
+	zend_ulong num_key;
 	zend_string *header_name;
 	sapi_header_line ctr = {0};
 
